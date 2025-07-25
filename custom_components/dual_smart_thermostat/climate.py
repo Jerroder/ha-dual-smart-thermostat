@@ -81,6 +81,9 @@ from custom_components.dual_smart_thermostat.managers.opening_manager import (
 from custom_components.dual_smart_thermostat.managers.preset_manager import (
     PresetManager,
 )
+from custom_components.dual_smart_thermostat.managers.hvac_speed_manager import (
+    HvacSpeedManager,
+)
 
 from . import DOMAIN, PLATFORMS
 from .const import (
@@ -88,6 +91,7 @@ from .const import (
     ATTR_HVAC_ACTION_REASON,
     ATTR_HVAC_POWER_LEVEL,
     ATTR_HVAC_POWER_PERCENT,
+    ATTR_HVAC_SPEED_MODE,
     ATTR_OPENING_TIMEOUT,
     ATTR_PREV_HUMIDITY,
     ATTR_PREV_TARGET,
@@ -117,6 +121,8 @@ from .const import (
     CONF_HVAC_POWER_MAX,
     CONF_HVAC_POWER_MIN,
     CONF_HVAC_POWER_TOLERANCE,
+    CONF_HVAC_SPEED_MODES,
+    CONF_HVAC_SPEED_MANUAL,
     CONF_INITIAL_HVAC_MODE,
     CONF_KEEP_ALIVE,
     CONF_MAX_FLOOR_TEMP,
@@ -143,6 +149,7 @@ from .const import (
     DEFAULT_MAX_FLOOR_TEMP,
     DEFAULT_NAME,
     DEFAULT_TOLERANCE,
+    DEFAULT_HVAC_SPEED_MODES,
     TIMED_OPENING_SCHEMA,
 )
 from .hvac_action_reason.hvac_action_reason import (
@@ -213,6 +220,11 @@ HVAC_POWER_SCHEMA = {
     vol.Optional(CONF_HVAC_POWER_TOLERANCE): vol.Coerce(float),
 }
 
+HVAC_SPEED_SCHEMA = {
+    vol.Optional(CONF_HVAC_SPEED_MANUAL): cv.boolean,
+    vol.Optional(CONF_HVAC_SPEED_MODES): [cv.string],
+}
+
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HEATER): cv.entity_id,
@@ -268,6 +280,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(HEAT_PUMP_SCHEMA)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(HVAC_POWER_SCHEMA)
 
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(HVAC_SPEED_SCHEMA)
+
 # Add the old presets schema to avoid breaking change
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {vol.Optional(v): vol.Coerce(float) for (k, v) in CONF_PRESETS_OLD.items()}
@@ -304,7 +318,9 @@ async def async_setup_platform(
         config,
     )
 
-    hvac_power_manager = HvacPowerManager(hass, config, environment_manager)
+    hvac_speed_manager = HvacSpeedManager(hass, config)
+
+    hvac_power_manager = HvacPowerManager(hass, config, environment_manager, hvac_speed_manager)
 
     feature_manager = FeatureManager(hass, config, environment_manager)
 
@@ -336,6 +352,7 @@ async def async_setup_platform(
                 opening_manager,
                 feature_manager,
                 hvac_power_manager,
+                hvac_speed_manager,
             )
         ]
     )
@@ -391,6 +408,7 @@ class DualSmartThermostat(ClimateEntity, RestoreEntity):
         opening_manager: OpeningManager,
         feature_manager: FeatureManager,
         power_manager: HvacPowerManager,
+        hvac_speed_manager: HvacSpeedManager,
     ) -> None:
         """Initialize the thermostat."""
         self._attr_name = name
@@ -414,6 +432,9 @@ class DualSmartThermostat(ClimateEntity, RestoreEntity):
 
         # power manager
         self.power_manager = power_manager
+
+        # speed manager
+        self.speed_manager = hvac_speed_manager
 
         # sensors
         self.sensor_entity_id = sensor_entity_id
@@ -622,6 +643,10 @@ class DualSmartThermostat(ClimateEntity, RestoreEntity):
             self.presets.apply_old_state(old_state)
             self._attr_preset_mode = self.presets.preset_mode
 
+            # restore previous speed mode if available
+            if self.speed_manager and self.speed_manager.is_configured:
+                self.speed_manager.apply_old_state(old_state)
+
             _LOGGER.debug("restoring hvac_mode: %s", hvac_mode)
             await self.async_set_hvac_mode(hvac_mode, is_restore=True)
 
@@ -719,6 +744,20 @@ class DualSmartThermostat(ClimateEntity, RestoreEntity):
         return self.hvac_device.hvac_action
 
     @property
+    def fan_mode(self) -> str | None:
+        """Return the current fan mode."""
+        if self.speed_manager and self.speed_manager.is_configured:
+            return self.speed_manager.current_speed_mode
+        return None
+
+    @property
+    def fan_modes(self) -> list[str] | None:
+        """Return the list of available fan modes."""
+        if self.speed_manager and self.speed_manager.is_configured:
+            return self.speed_manager.speed_modes
+        return None
+
+    @property
     def target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
         return self.environment.target_temp
@@ -797,6 +836,10 @@ class DualSmartThermostat(ClimateEntity, RestoreEntity):
             )
             attributes[ATTR_HVAC_POWER_LEVEL] = self.power_manager.hvac_power_level
             attributes[ATTR_HVAC_POWER_PERCENT] = self.power_manager.hvac_power_percent
+
+        # Add HVAC speed mode attribute if configured
+        if self.speed_manager and self.speed_manager.is_configured:
+            attributes[ATTR_HVAC_SPEED_MODE] = self.speed_manager.current_speed_mode
 
         _LOGGER.debug("Extra state attributes: %s", attributes)
 
@@ -1329,6 +1372,28 @@ class DualSmartThermostat(ClimateEntity, RestoreEntity):
                 self.presets.preset_mode, self.presets.preset_env, old_preset_mode
             )
 
+        await self._async_control_climate(force=True)
+        self.async_write_ha_state()
+
+    async def async_set_fan_mode(self, fan_mode: str) -> None:
+        """Set new fan mode (HVAC speed)."""
+        if not self.speed_manager or not self.speed_manager.is_configured:
+            _LOGGER.warning("Speed control is not configured")
+            return
+
+        _LOGGER.info("Setting HVAC speed mode: %s", fan_mode)
+        
+        if fan_mode not in self.speed_manager.speed_modes:
+            _LOGGER.warning("Invalid speed mode: %s. Available modes: %s", 
+                          fan_mode, self.speed_manager.speed_modes)
+            return
+
+        old_speed_mode = self.speed_manager.current_speed_mode
+        self.speed_manager.set_speed_mode(fan_mode)
+        
+        _LOGGER.debug("Speed mode changed from %s to %s", old_speed_mode, fan_mode)
+        
+        # Trigger climate control to apply new speed
         await self._async_control_climate(force=True)
         self.async_write_ha_state()
 

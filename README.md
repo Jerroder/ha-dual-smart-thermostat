@@ -1,5 +1,7 @@
 # Home Assistant Dual Smart Thermostat component
 
+This is a fork of [ha-dual-smart-thermostat](https://github.com/swingerman/ha-dual-smart-thermostat) with [manual HVAC speed control](HVAC_SPEED_IMPLEMENTATION.md). I think this breaks the original add-on's `fan_mode` for actual fans but I don't use that so it works for me.
+
 The `dual_smart_thermostat` is an enhanced version of generic thermostat implemented in Home Assistant.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/swingerman/ha-dual-smart-thermostat) ![Release](https://img.shields.io/github/v/release/swingerman/ha-dual-smart-thermostat?style=for-the-badge) [![Donate](https://img.shields.io/badge/Donate-PayPal-yellowgreen?style=for-the-badge&logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=S6NC9BYVDDJMA&source=url)

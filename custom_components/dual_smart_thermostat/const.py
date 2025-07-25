@@ -73,6 +73,14 @@ CONF_HVAC_POWER_TOLERANCE = "hvac_power_tolerance"
 ATTR_HVAC_POWER_LEVEL = "hvac_power_level"
 ATTR_HVAC_POWER_PERCENT = "hvac_power_percent"
 
+# HVAC speed control
+CONF_HVAC_SPEED_MODES = "hvac_speed_modes"
+CONF_HVAC_SPEED_MANUAL = "hvac_speed_manual"
+ATTR_HVAC_SPEED_MODE = "hvac_speed_mode"
+
+# Default HVAC speed modes
+DEFAULT_HVAC_SPEED_MODES = ["auto", "low", "medium", "high"]
+
 ATTR_PREV_TARGET = "prev_target_temp"
 ATTR_PREV_TARGET_LOW = "prev_target_temp_low"
 ATTR_PREV_TARGET_HIGH = "prev_target_temp_high"

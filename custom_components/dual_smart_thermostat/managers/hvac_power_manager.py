@@ -28,11 +28,12 @@ class HvacPowerManager:
     _hvac_power_percent = 0
 
     def __init__(
-        self, hass: HomeAssistant, config: ConfigType, environment: EnvironmentManager
+        self, hass: HomeAssistant, config: ConfigType, environment: EnvironmentManager, speed_manager=None
     ) -> None:
         self.hass = hass
         self.config = config
         self.environment = environment
+        self.speed_manager = speed_manager
 
         self._hvac_power_levels = config.get(CONF_HVAC_POWER_LEVELS) or 5
 
@@ -129,7 +130,19 @@ class HvacPowerManager:
             return
 
         if goal_not_reached:
-            _LOGGER.debug("Updating hvac power because goal not reached")
+            # Check if manual speed mode is active
+            if self.speed_manager and self.speed_manager.is_configured and not self.speed_manager.is_auto_mode:
+                _LOGGER.debug("Using manual speed mode for power calculation")
+                manual_power_level = self.speed_manager.get_manual_power_level()
+                if manual_power_level is not None:
+                    self._hvac_power_level = manual_power_level
+                    # Calculate percentage based on manual level
+                    self._hvac_power_percent = int((manual_power_level / self._hvac_power_levels) * 100)
+                    _LOGGER.debug("Manual power level set to: %s (%s%%)", 
+                                self._hvac_power_level, self._hvac_power_percent)
+                    return
+            
+            _LOGGER.debug("Updating hvac power because goal not reached (auto mode)")
             self._calculate_power(target_env_attr)
 
     def _calculate_power(self, target_env_attr: str):
