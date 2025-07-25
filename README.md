@@ -1,11 +1,10 @@
 # Home Assistant Dual Smart Thermostat component
 
+This is a fork of [ha-dual-smart-thermostat](https://github.com/swingerman/ha-dual-smart-thermostat) with [manual HVAC speed control](HVAC_SPEED_IMPLEMENTATION.md). I think this breaks the original add-on's `fan_mode` for actual fans but I don't use that so it works for me.
+
 The `dual_smart_thermostat` is an enhanced version of generic thermostat implemented in Home Assistant.
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/swingerman/ha-dual-smart-thermostat) ![Release](https://img.shields.io/github/v/release/swingerman/ha-dual-smart-thermostat?style=for-the-badge) [![Donate](https://img.shields.io/badge/Donate-PayPal-yellowgreen?style=for-the-badge&logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=S6NC9BYVDDJMA&source=url)
-
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=swingerman&repository=ha-dual-smart-thermostat&category=Integration)
-
+Donate to the original developer here: [![Donate](https://img.shields.io/badge/Donate-PayPal-yellowgreen?style=for-the-badge&logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=S6NC9BYVDDJMA&source=url)
 
 ## Table of contents
 
@@ -862,7 +861,7 @@ climate:
 
 ### Donate
 
-I am happy to help the Home Assistant community but I do it in my free time at the cost of spending less time with my family. Feel free to motivate me and appreciate my sacrifice by donating:
+The original developer is happy to help the Home Assistant community but he does it in his free time at the cost of spending less time with his family. Feel free to motivate him and appreciate his sacrifice by donating:
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-yellowgreen?style=for-the-badge&logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=S6NC9BYVDDJMA&source=url)
 [![coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/swingerman)

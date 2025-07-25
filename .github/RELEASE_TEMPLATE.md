@@ -24,7 +24,7 @@ This release is available through [HACS](https://hacs.xyz/). If you're upgrading
 
 ## Support the Project
 
-If this integration has been helpful to you, consider supporting its continued development. Your support helps maintain and improve this project for the entire Home Assistant community.
+If this integration has been helpful to you, consider supporting its continued development from the original developer. Your support helps maintain and improve this project for the entire Home Assistant community.
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-yellowgreen?style=for-the-badge&logo=paypal)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=S6NC9BYVDDJMA&source=url)
 [![coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/swingerman)

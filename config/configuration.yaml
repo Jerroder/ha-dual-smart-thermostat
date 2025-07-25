@@ -156,8 +156,8 @@ climate:
     heater: switch.heater
     cooler: switch.cooler
     openings:
-     - input_boolean.window_open
-     - input_boolean.window_open2
+      - input_boolean.window_open
+      - input_boolean.window_open2
     target_sensor: sensor.room_temp
     floor_sensor: sensor.floor_temp
     min_temp: 15
@@ -198,6 +198,27 @@ climate:
   #   # initial_hvac_mode: "off"
   #   away_temp: 16
   #   precision: 0.1
+
+  # Example with HVAC Speed Control enabled
+  # - platform: dual_smart_thermostat
+  #   name: Smart Thermostat with Speed Control
+  #   unique_id: smart_thermostat_speed
+  #   heater: switch.heater
+  #   cooler: switch.cooler
+  #   target_sensor: sensor.room_temp
+  #   min_temp: 15
+  #   max_temp: 28
+  #   target_temp: 23
+  #   cold_tolerance: 0.3
+  #   hot_tolerance: 0.3
+  #   # Enable manual HVAC speed control
+  #   hvac_speed_manual: true
+  #   # Define available speed modes (optional, defaults to ["auto", "low", "medium", "high"])
+  #   hvac_speed_modes: ["auto", "low", "medium", "high"]
+  #   # Power level configuration for fine-tuning
+  #   hvac_power_levels: 5
+  #   hvac_power_min: 1
+  #   hvac_power_max: 5
 
   # - platform: dual_smart_thermostat
   #   name: Cool Room
@@ -483,7 +504,6 @@ climate:
   #     target_temp_low: 15
   #     target_temp_high: 28
 
-
   # - platform: dual_smart_thermostat
   #   name: Dual Humidity
   #   unique_id: dual_humidity
@@ -524,7 +544,6 @@ climate:
   #   target_temp: 20
   #   cold_tolerance: 0.3
   #   hot_tolerance: 0.3
-
 
   # - platform: dual_smart_thermostat
   #   name: AUX Heat Room
@@ -588,5 +607,4 @@ logger:
   default: error
   logs:
     custom_components.dual_smart_thermostat: debug
-
 # debugpy:

@@ -28,6 +28,8 @@ from custom_components.dual_smart_thermostat.const import (
     CONF_HUMIDITY_SENSOR,
     CONF_HVAC_POWER_LEVELS,
     CONF_HVAC_POWER_TOLERANCE,
+    CONF_HVAC_SPEED_MANUAL,
+    CONF_HVAC_SPEED_MODES,
 )
 from custom_components.dual_smart_thermostat.managers.environment_manager import (
     EnvironmentManager,
@@ -75,6 +77,9 @@ class FeatureManager(StateManager):
 
         self._hvac_power_levels = config.get(CONF_HVAC_POWER_LEVELS)
         self._hvac_power_tolerance = config.get(CONF_HVAC_POWER_TOLERANCE)
+
+        self._hvac_speed_manual = config.get(CONF_HVAC_SPEED_MANUAL, False)
+        self._hvac_speed_modes = config.get(CONF_HVAC_SPEED_MODES)
 
     @property
     def heat_pump_cooling_entity_id(self) -> str:
@@ -202,6 +207,11 @@ class FeatureManager(StateManager):
             or self._hvac_power_tolerance is not None
         )
 
+    @property
+    def is_configured_for_hvac_speed_control(self) -> bool:
+        """Determines if HVAC speed control is configured."""
+        return self._hvac_speed_manual
+
     def set_support_flags(
         self,
         presets: dict[str, PresetEnv],
@@ -251,6 +261,11 @@ class FeatureManager(StateManager):
 
         if self.is_configured_for_dryer_mode:
             self._supported_features |= ClimateEntityFeature.TARGET_HUMIDITY
+
+        # Add fan mode support for HVAC speed control
+        if self.is_configured_for_hvac_speed_control:
+            self._supported_features |= ClimateEntityFeature.FAN_MODE
+            _LOGGER.debug("Added FAN_MODE support for HVAC speed control")
 
     def apply_old_state(
         self, old_state: State | None, hvac_mode: HVACMode | None = None, presets=[]
